@@ -77,6 +77,60 @@
             background-color: var(--container-bg);
         }
 
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+            padding: 12px;
+            background: var(--info-bg);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .controls label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .controls select, .controls input {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .controls button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .controls button:hover {
+            opacity: 0.9;
+        }
+
+        .controls button.secondary {
+            background: var(--border-color);
+        }
+
+        .settings-status {
+            font-size: 12px;
+            color: var(--text-color-muted);
+            margin-left: auto;
+        }
+
         a {
             color: var(--accent-color);
             text-decoration: none;
@@ -109,6 +163,25 @@
             animation: pulse 1s ease-in-out;
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--accent-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.3s ease;
+            z-index: 1000;
+            display: none;
+        }
+
         @media (max-width: 920px) {
             .container {
                 padding: 16px;
@@ -118,6 +191,16 @@
             iframe {
                 width: 100%;
                 height: 700px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .settings-status {
+                margin-left: 0;
+                margin-top: 8px;
             }
         }
 
@@ -137,18 +220,64 @@
     </style>
 </head>
 <body>
+    <div class="notification" id="notification"></div>
+
     <div class="container">
         <h1>📅 Календарь экономических событий</h1>
         
         <div class="info">
-            <p>Виджет показывает экономические события с важностью 1-3 звёзд. Страница автоматически обновляется.</p>
+            <p>Виджет показывает экономические события с важностью 1-3 звёзд. Настройки сохраняются автоматически.</p>
             <p><strong>Последнее обновление:</strong> <span id="lastUpdate"></span></p>
             <p><small>Текущий статус: <span id="statusIndicator">🟢 Активен</span></small></p>
         </div>
 
+        <div class="controls">
+            <label>
+                <input type="checkbox" id="saveSettings" checked>
+                Сохранять настройки
+            </label>
+            
+            <label>
+                Важность:
+                <select id="importanceSelect">
+                    <option value="1,2,3">Все (1-3 звёзды)</option>
+                    <option value="3">Только высокие (3 звезды)</option>
+                    <option value="2,3">Средние и высокие (2-3 звезды)</option>
+                    <option value="1">Низкие (1 звезда)</option>
+                </select>
+            </label>
+            
+            <label>
+                Категории:
+                <select id="categorySelect">
+                    <option value="_employment,_economicActivity,_inflation,_credit,_centralBanks,_confidenceIndex,_balance,_Bonds">Все категории</option>
+                    <option value="_employment,_economicActivity">Занятость и активность</option>
+                    <option value="_inflation,_credit">Инфляция и кредиты</option>
+                    <option value="_centralBanks">Центральные банки</option>
+                    <option value="_confidenceIndex,_balance">Доверие и баланс</option>
+                </select>
+            </label>
+            
+            <label>
+                Часовой пояс:
+                <select id="timezoneSelect">
+                    <option value="18">Москва (+3)</option>
+                    <option value="8">Лондон (GMT)</option>
+                    <option value="19">Нью-Йорк (-5)</option>
+                    <option value="24">Токио (+9)</option>
+                </select>
+            </label>
+            
+            <button id="applySettings">Применить</button>
+            <button id="resetSettings" class="secondary">Сбросить</button>
+            
+            <div class="settings-status" id="settingsStatus">
+                Настройки сохранены
+            </div>
+        </div>
+
         <!-- Основной виджет Investing.com -->
         <iframe 
-            src="https://sslecal2.investing.com?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&category=_employment,_economicActivity,_inflation,_credit,_centralBanks,_confidenceIndex,_balance,_Bonds&importance=1,2,3&features=datepicker,timezone,timeselector,filters&countries=25,4,17,39,72,26,10,6,37,43,56,36,5,61,22,12,35&calType=day&timeZone=18&lang=7" 
             width="880" 
             height="660" 
             frameborder="0" 
@@ -168,8 +297,133 @@
         const WIDGET_UPDATE_INTERVAL = 300000; // 5 минут
         const TIMESTAMP_UPDATE_INTERVAL = 60000; // 1 минута
         
-        // Базовый URL виджета
-        const WIDGET_BASE_URL = "https://sslecal2.investing.com?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&category=_employment,_economicActivity,_inflation,_credit,_centralBanks,_confidenceIndex,_balance,_Bonds&importance=1,2,3&features=datepicker,timezone,timeselector,filters&countries=25,4,17,39,72,26,10,6,37,43,56,36,5,61,22,12,35&calType=day&timeZone=18&lang=7";
+        // Базовые параметры URL
+        const WIDGET_BASE_PARAMS = {
+            columns: 'exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous',
+            features: 'datepicker,timezone,timeselector,filters',
+            countries: '25,4,17,39,72,26,10,6,37,43,56,36,5,61,22,12,35',
+            calType: 'day',
+            lang: '7'
+        };
+
+        // Настройки по умолчанию
+        const DEFAULT_SETTINGS = {
+            importance: '1,2,3',
+            category: '_employment,_economicActivity,_inflation,_credit,_centralBanks,_confidenceIndex,_balance,_Bonds',
+            timeZone: '18',
+            saveSettings: true
+        };
+
+        // Текущие настройки
+        let currentSettings = {...DEFAULT_SETTINGS};
+
+        // Показываем уведомление
+        function showNotification(message, duration = 3000) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, duration);
+        }
+
+        // Сохраняем настройки в localStorage
+        function saveSettings() {
+            if (!currentSettings.saveSettings) return;
+            
+            try {
+                localStorage.setItem('economicCalendarSettings', JSON.stringify(currentSettings));
+                document.getElementById('settingsStatus').textContent = 'Настройки сохранены';
+                showNotification('Настройки сохранены');
+                console.log('Настройки сохранены:', currentSettings);
+            } catch (error) {
+                console.error('Ошибка при сохранении настроек:', error);
+            }
+        }
+
+        // Загружаем настройки из localStorage
+        function loadSettings() {
+            try {
+                const saved = localStorage.getItem('economicCalendarSettings');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    currentSettings = {...DEFAULT_SETTINGS, ...parsed};
+                    console.log('Настройки загружены:', currentSettings);
+                    return true;
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке настроек:', error);
+            }
+            return false;
+        }
+
+        // Применяем настройки к элементам формы
+        function applySettingsToForm() {
+            document.getElementById('saveSettings').checked = currentSettings.saveSettings;
+            document.getElementById('importanceSelect').value = currentSettings.importance;
+            document.getElementById('categorySelect').value = currentSettings.category;
+            document.getElementById('timezoneSelect').value = currentSettings.timeZone;
+            
+            document.getElementById('settingsStatus').textContent = 
+                currentSettings.saveSettings ? 'Настройки сохранены' : 'Автосохранение отключено';
+        }
+
+        // Обновляем настройки из формы
+        function updateSettingsFromForm() {
+            currentSettings = {
+                importance: document.getElementById('importanceSelect').value,
+                category: document.getElementById('categorySelect').value,
+                timeZone: document.getElementById('timezoneSelect').value,
+                saveSettings: document.getElementById('saveSettings').checked
+            };
+        }
+
+        // Собираем URL виджета с текущими настройками
+        function buildWidgetUrl() {
+            const params = {
+                ...WIDGET_BASE_PARAMS,
+                importance: currentSettings.importance,
+                category: currentSettings.category,
+                timeZone: currentSettings.timeZone,
+                _t: new Date().getTime() // Для предотвращения кэширования
+            };
+            
+            const queryString = Object.entries(params)
+                .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+                .join('&');
+            
+            return `https://sslecal2.investing.com?${queryString}`;
+        }
+
+        // Обновляем виджет с текущими настройками
+        function updateWidget() {
+            // Проверяем условия видимости
+            if (!isPageVisible() || !isWidgetVisible()) {
+                console.log('Обновление пропущено: страница или виджет не видны');
+                document.getElementById('statusIndicator').textContent = '⏸️ Приостановлено';
+                document.getElementById('statusIndicator').style.color = '#ffa500';
+                return;
+            }
+
+            // Защита от слишком частых обновлений при переключении вкладок
+            const now = Date.now();
+            if (now - lastVisibilityChange < VISIBILITY_THRESHOLD) {
+                console.log('Обновление отложено: недавно было переключение вкладки');
+                return;
+            }
+
+            const iframe = document.getElementById('investingWidget');
+            triggerUpdateAnimation();
+            
+            setTimeout(() => {
+                iframe.src = buildWidgetUrl();
+                updateTimestamp();
+                document.getElementById('statusIndicator').textContent = '🟢 Активен';
+                document.getElementById('statusIndicator').style.color = '#00ff00';
+                console.log('Виджет обновлен в ' + new Date().toLocaleString());
+            }, 500);
+        }
 
         // Обновляем время последнего обновления
         function updateTimestamp() {
@@ -194,7 +448,6 @@
             const windowHeight = window.innerHeight || document.documentElement.clientHeight;
             const windowWidth = window.innerWidth || document.documentElement.clientWidth;
             
-            // Проверяем, находится ли виджет в области просмотра
             return (
                 rect.top >= 0 &&
                 rect.left >= 0 &&
@@ -210,39 +463,6 @@
             return !document.hidden;
         }
 
-        // Обновление виджета с предотвращением кэширования
-        function updateWidget() {
-            // Проверяем условия видимости
-            if (!isPageVisible() || !isWidgetVisible()) {
-                console.log('Обновление пропущено: страница или виджет не видны');
-                document.getElementById('statusIndicator').textContent = '⏸️ Приостановлено';
-                document.getElementById('statusIndicator').style.color = '#ffa500';
-                return;
-            }
-
-            // Защита от слишком частых обновлений при переключении вкладок
-            const now = Date.now();
-            if (now - lastVisibilityChange < VISIBILITY_THRESHOLD) {
-                console.log('Обновление отложено: недавно было переключение вкладки');
-                return;
-            }
-
-            const iframe = document.getElementById('investingWidget');
-            triggerUpdateAnimation();
-            
-            // Добавляем timestamp для предотвращения кэширования
-            const timestamp = new Date().getTime();
-            const newUrl = `${WIDGET_BASE_URL}&_t=${timestamp}`;
-            
-            setTimeout(() => {
-                iframe.src = newUrl;
-                updateTimestamp();
-                document.getElementById('statusIndicator').textContent = '🟢 Активен';
-                document.getElementById('statusIndicator').style.color = '#00ff00';
-                console.log('Виджет обновлен в ' + new Date().toLocaleString());
-            }, 500);
-        }
-
         // Плавная анимация при обновлении
         function triggerUpdateAnimation() {
             const container = document.querySelector('.container');
@@ -254,13 +474,9 @@
 
         // Запуск интервалов обновления
         function startIntervals() {
-            // Останавливаем существующие интервалы для предотвращения утечек
             stopIntervals();
             
-            // Обновление виджета каждые 5 минут
             updateInterval = setInterval(updateWidget, WIDGET_UPDATE_INTERVAL);
-            
-            // Обновление времени каждую минуту
             timestampInterval = setInterval(updateTimestamp, TIMESTAMP_UPDATE_INTERVAL);
             
             console.log('Интервалы обновления запущены');
@@ -289,12 +505,9 @@
             lastVisibilityChange = Date.now();
             
             if (document.hidden) {
-                // Страница скрыта - останавливаем обновления
                 stopIntervals();
             } else {
-                // Страница стала видимой - запускаем обновления
                 startIntervals();
-                // Немедленно обновляем виджет при возвращении на вкладку
                 setTimeout(updateWidget, 1000);
             }
         }
@@ -304,11 +517,9 @@
         function handleScroll() {
             clearTimeout(scrollTimeout);
             scrollTimeout = setTimeout(() => {
-                // Если виджет стал видимым и интервалы не запущены - запускаем
                 if (isWidgetVisible() && isPageVisible() && !updateInterval) {
                     startIntervals();
                 }
-                // Если виджет не видим и интервалы запущены - останавливаем
                 else if (!isWidgetVisible() && updateInterval) {
                     stopIntervals();
                 }
@@ -317,7 +528,13 @@
 
         // Инициализация
         function init() {
+            // Загружаем сохранённые настройки
+            loadSettings();
+            applySettingsToForm();
             updateTimestamp();
+            
+            // Загружаем виджет с текущими настройками
+            document.getElementById('investingWidget').src = buildWidgetUrl();
             
             // Запускаем обновления, если страница видима
             if (isPageVisible()) {
@@ -332,9 +549,46 @@
             window.addEventListener('scroll', handleScroll);
             window.addEventListener('resize', handleScroll);
             
+            // Обработчики для элементов управления
+            document.getElementById('applySettings').addEventListener('click', () => {
+                updateSettingsFromForm();
+                saveSettings();
+                updateWidget();
+                showNotification('Настройки применены');
+            });
+            
+            document.getElementById('resetSettings').addEventListener('click', () => {
+                currentSettings = {...DEFAULT_SETTINGS};
+                applySettingsToForm();
+                saveSettings();
+                updateWidget();
+                showNotification('Настройки сброшены');
+            });
+            
+            // Автосохранение при изменении настроек
+            const inputs = document.querySelectorAll('#importanceSelect, #categorySelect, #timezoneSelect');
+            inputs.forEach(input => {
+                input.addEventListener('change', () => {
+                    updateSettingsFromForm();
+                    if (currentSettings.saveSettings) {
+                        saveSettings();
+                    }
+                });
+            });
+            
+            document.getElementById('saveSettings').addEventListener('change', () => {
+                updateSettingsFromForm();
+                document.getElementById('settingsStatus').textContent = 
+                    currentSettings.saveSettings ? 'Автосохранение включено' : 'Автосохранение отключено';
+                if (currentSettings.saveSettings) {
+                    saveSettings();
+                }
+            });
+            
             // Очистка при закрытии страницы
             window.addEventListener('beforeunload', () => {
                 stopIntervals();
+                saveSettings(); // Последнее сохранение
                 document.removeEventListener('visibilitychange', handleVisibilityChange);
                 window.removeEventListener('scroll', handleScroll);
                 window.removeEventListener('resize', handleScroll);
