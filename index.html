@@ -224,12 +224,6 @@
 
     <div class="container">
         <h1>📅 Календарь экономических событий</h1>
-        
-        <div class="info">
-            <p>Виджет показывает экономические события с важностью 1-3 звёзд. Настройки сохраняются автоматически.</p>
-            <p><strong>Последнее обновление:</strong> <span id="lastUpdate"></span></p>
-            <p><small>Текущий статус: <span id="statusIndicator">🟢 Активен</span></small></p>
-        </div>
 
         <div class="controls">
             <label>
@@ -295,7 +289,6 @@
         let lastVisibilityChange = Date.now();
         const VISIBILITY_THRESHOLD = 5000; // 5 секунд для предотвращения частых переключений
         const WIDGET_UPDATE_INTERVAL = 300000; // 5 минут
-        const TIMESTAMP_UPDATE_INTERVAL = 60000; // 1 минута
         
         // Базовые параметры URL
         const WIDGET_BASE_PARAMS = {
@@ -401,8 +394,6 @@
             // Проверяем условия видимости
             if (!isPageVisible() || !isWidgetVisible()) {
                 console.log('Обновление пропущено: страница или виджет не видны');
-                document.getElementById('statusIndicator').textContent = '⏸️ Приостановлено';
-                document.getElementById('statusIndicator').style.color = '#ffa500';
                 return;
             }
 
@@ -418,27 +409,8 @@
             
             setTimeout(() => {
                 iframe.src = buildWidgetUrl();
-                updateTimestamp();
-                document.getElementById('statusIndicator').textContent = '🟢 Активен';
-                document.getElementById('statusIndicator').style.color = '#00ff00';
                 console.log('Виджет обновлен в ' + new Date().toLocaleString());
             }, 500);
-        }
-
-        // Обновляем время последнего обновления
-        function updateTimestamp() {
-            const now = new Date();
-            const options = {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                timeZone: 'Europe/Moscow'
-            };
-            document.getElementById('lastUpdate').textContent = 
-                now.toLocaleString('ru-RU', options) + ' (МСК)';
         }
 
         // Проверка видимости виджета в области просмотра
@@ -477,11 +449,8 @@
             stopIntervals();
             
             updateInterval = setInterval(updateWidget, WIDGET_UPDATE_INTERVAL);
-            timestampInterval = setInterval(updateTimestamp, TIMESTAMP_UPDATE_INTERVAL);
             
             console.log('Интервалы обновления запущены');
-            document.getElementById('statusIndicator').textContent = '🟢 Активен';
-            document.getElementById('statusIndicator').style.color = '#00ff00';
         }
 
         // Остановка интервалов для экономии ресурсов
@@ -490,14 +459,8 @@
                 clearInterval(updateInterval);
                 updateInterval = null;
             }
-            if (timestampInterval) {
-                clearInterval(timestampInterval);
-                timestampInterval = null;
-            }
             
             console.log('Интервалы обновления остановлены');
-            document.getElementById('statusIndicator').textContent = '⏸️ Приостановлено';
-            document.getElementById('statusIndicator').style.color = '#ffa500';
         }
 
         // Обработчик изменения видимости страницы
@@ -531,7 +494,6 @@
             // Загружаем сохранённые настройки
             loadSettings();
             applySettingsToForm();
-            updateTimestamp();
             
             // Загружаем виджет с текущими настройками
             document.getElementById('investingWidget').src = buildWidgetUrl();
