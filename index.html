@@ -1,1 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Экономический календарь</title>
+    <link rel="icon" type="image/png" href="https://ru.investing.com/favicon.ico">
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --container-bg: #161b22;
+            --text-color: #c9d1d9;
+            --text-color-muted: #8b949e;
+            --border-color: #30363d;
+            --accent-color: #1f6feb;
+        }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 880px;
+            width: 100%;
+            background: var(--container-bg);
+            padding: 24px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--text-color);
+            margin-bottom: 24px;
+            font-weight: 600;
+            font-size: 28px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        iframe {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--container-bg);
+        }
+        
+        .poweredBy {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-color-muted);
+        }
+        
+        .poweredBy a {
+            color: var(--accent-color);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .poweredBy a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 920px) {
+            .container {
+                padding: 16px;
+            }
+            
+            iframe {
+                height: 500px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            iframe {
+                height: 400px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            iframe {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📅 Календарь экономических событий</h1>
+        
+        <iframe 
+            src="https://sslecal2.investing.com?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&category=_employment,_economicActivity,_inflation,_credit,_centralBanks,_confidenceIndex,_balance,_Bonds&features=datepicker,timezone,timeselector,filters&countries=25,4,17,39,72,26,10,6,37,43,56,36,5,61,22,12,35&calType=week&timeZone=18&lang=7" 
+            width="650" 
+            height="467" 
+            frameborder="0" 
+            allowtransparency="true" 
+            marginwidth="0" 
+            marginheight="0"
+            title="Экономический календарь Investing.com">
+        </iframe>
+        </div>
+</body>
+</html>
