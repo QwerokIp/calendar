@@ -6,6 +6,7 @@
     <title>Экономический календарь</title>
     <link rel="icon" type="image/png" href="https://ru.investing.com/favicon.ico">
     <style>
+        /* Стили остаются без изменений */
         :root {
             --bg-color: #0d1117;
             --container-bg: #161b22;
@@ -52,7 +53,6 @@
             border-radius: 6px;
             background-color: var(--container-bg);
             width: 100%;
-            transition: opacity 0.3s ease;
         }
 
         .widget-container {
@@ -196,16 +196,6 @@
             font-weight: bold;
         }
 
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-
-        .updating {
-            animation: pulse 1s ease-in-out;
-        }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -226,6 +216,7 @@
             font-size: 13px;
         }
 
+        /* Медиа-запросы остаются без изменений */
         @media (max-width: 920px) {
             .container {
                 padding: 16px;
@@ -375,9 +366,7 @@
                 allowtransparency="true" 
                 marginwidth="0" 
                 marginheight="0"
-                id="investingWidget"
-                name="investingWidget"
-                src="https://sslecal2.investing.com/?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&category=_employment,_economicActivity,_inflation,_credit,_centralBanks,_confidenceIndex,_balance,_Bonds&importance=1,2,3&features=datepicker,timezone,timeselector,filters&countries=25,4,17,39,72,26,10,6,37,43,56,36,5,61,22,12,35&calType=day&timeZone=18&lang=7&date=2025-12-15">
+                id="investingWidget">
             </iframe>
         </div>
         
@@ -387,7 +376,9 @@
     </div>
 
     <script>
-        // Упрощенные настройки
+        // Упрощенный подход: используем тот же URL, что и на сайте Investing.com
+        const WIDGET_URL = "https://sslecal2.investing.com?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&category=_employment,_economicActivity,_inflation,_credit,_centralBanks,_confidenceIndex,_balance,_Bonds&importance=1,2,3&features=datepicker,timezone,timeselector,filters&countries=25,4,17,39,72,26,10,6,37,43,56,36,5,61,22,12,35&calType=day&timeZone=18&lang=7";
+
         const DEFAULT_SETTINGS = {
             importance: '1,2,3',
             category: '_employment,_economicActivity,_inflation,_credit,_centralBanks,_confidenceIndex,_balance,_Bonds',
@@ -425,9 +416,7 @@
                     currentSettings = {...DEFAULT_SETTINGS, ...JSON.parse(saved)};
                     return true;
                 }
-            } catch(e) {
-                console.error('Ошибка при загрузке настроек:', e);
-            }
+            } catch(e) {}
             return false;
         }
         
@@ -470,75 +459,97 @@
             };
         }
         
-        // НОВАЯ ЛОГИКА: Полная перезагрузка iframe
-        function reloadWidget() {
-            const baseUrl = 'https://sslecal2.investing.com/?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous';
-            const params = new URLSearchParams({
-                category: currentSettings.category,
-                importance: currentSettings.importance,
-                countries: '25,4,17,39,72,26,10,6,37,43,56,36,5,61,22,12,35',
-                features: 'datepicker,timezone,timeselector,filters',
-                timeZone: currentSettings.timeZone,
-                lang: '7'
-            });
+        // НОВЫЙ ПОДХОД: Вместо перезагрузки iframe, работаем с его внутренними элементами
+        function setPeriod(period) {
+            console.log('Установка периода:', period);
+            currentSettings.period = period;
             
-            // Определяем дату
-            const now = new Date();
-            let targetDate = new Date(now);
+            // Обновляем активную кнопку
+            updatePeriodButtons();
             
-            switch(currentSettings.period) {
-                case 'yesterday':
-                    targetDate.setDate(now.getDate() - 1);
-                    params.set('calType', 'day');
-                    params.set('date', formatDate(targetDate));
-                    break;
-                case 'today':
-                    params.set('calType', 'day');
-                    params.set('date', formatDate(now));
-                    break;
-                case 'tomorrow':
-                    targetDate.setDate(now.getDate() + 1);
-                    params.set('calType', 'day');
-                    params.set('date', formatDate(targetDate));
-                    break;
-                case 'thisWeek':
-                    params.set('calType', 'week');
-                    break;
-            }
+            saveSettings();
             
-            // Собираем финальный URL с уникальным timestamp
-            const finalUrl = `${baseUrl}&${params.toString()}&_t=${Date.now()}`;
-            console.log('Загружаем виджет по URL:', finalUrl);
-            
-            // Визуальная индикация
-            iframe.style.opacity = '0.6';
-            
-            // Метод 1: Пробуем postMessage (если виджет поддерживает)
+            // Пробуем взаимодействовать с виджетом через postMessage
             try {
+                const now = new Date();
+                let targetDate = new Date(now);
+                
+                switch(period) {
+                    case 'yesterday':
+                        targetDate.setDate(now.getDate() - 1);
+                        break;
+                    case 'today':
+                        // текущая дата
+                        break;
+                    case 'tomorrow':
+                        targetDate.setDate(now.getDate() + 1);
+                        break;
+                    case 'thisWeek':
+                        // для недели отправляем специальный сигнал
+                        iframe.contentWindow.postMessage({
+                            action: 'setPeriod',
+                            period: 'week'
+                        }, 'https://sslecal2.investing.com');
+                        showNotification(`Показан: ${getPeriodName(period)}`);
+                        return;
+                }
+                
+                // Форматируем дату как YYYY-MM-DD
+                const dateStr = targetDate.getFullYear() + '-' + 
+                               String(targetDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                               String(targetDate.getDate()).padStart(2, '0');
+                
+                // Отправляем сообщение виджету
                 iframe.contentWindow.postMessage({
                     action: 'setDate',
-                    date: currentSettings.period === 'thisWeek' ? 'week' : formatDate(targetDate),
+                    date: dateStr,
                     timeZone: currentSettings.timeZone
                 }, 'https://sslecal2.investing.com');
+                
+                console.log('Отправлено сообщение виджету:', {action: 'setDate', date: dateStr});
+                showNotification(`Показан: ${getPeriodName(period)}`);
+                
             } catch(e) {
-                console.log('postMessage не сработал, используем перезагрузку iframe');
+                console.log('Не удалось отправить сообщение виджету, используем запасной метод');
+                // Запасной метод: прямая манипуляция с элементами внутри iframe
+                useFallbackMethod(period);
             }
-            
-            // Метод 2: Всегда делаем перезагрузку iframe как запасной вариант
-            setTimeout(() => {
-                iframe.src = finalUrl;
-                setTimeout(() => {
-                    iframe.style.opacity = '1';
-                    showNotification(`Показан: ${getPeriodName(currentSettings.period)}`);
-                }, 500);
-            }, 100);
         }
         
-        // Вспомогательные функции
-        function formatDate(date) {
-            return date.getFullYear() + '-' + 
-                   String(date.getMonth() + 1).padStart(2, '0') + '-' + 
-                   String(date.getDate()).padStart(2, '0');
+        // Запасной метод: если postMessage не работает
+        function useFallbackMethod(period) {
+            console.log('Используем запасной метод для периода:', period);
+            
+            try {
+                // Пробуем найти элементы внутри iframe
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // Ищем кнопки навигации по датам
+                const prevBtn = iframeDoc.querySelector('.calendarDatePicker-Previous');
+                const nextBtn = iframeDoc.querySelector('.calendarDatePicker-Next');
+                const todayBtn = iframeDoc.querySelector('.calendarDatePicker-Today');
+                
+                if (period === 'yesterday' && prevBtn) {
+                    prevBtn.click();
+                    showNotification('Показан: Вчера (запасной метод)');
+                } else if (period === 'tomorrow' && nextBtn) {
+                    nextBtn.click();
+                    showNotification('Показан: Завтра (запасной метод)');
+                } else if (period === 'today' && todayBtn) {
+                    todayBtn.click();
+                    showNotification('Показан: Сегодня (запасной метод)');
+                } else if (period === 'thisWeek') {
+                    // Ищем переключатель "Неделя"
+                    const weekBtn = iframeDoc.querySelector('.calendarTabButton[data-period="week"]');
+                    if (weekBtn) {
+                        weekBtn.click();
+                        showNotification('Показан: Вся неделя (запасной метод)');
+                    }
+                }
+            } catch(e) {
+                console.error('Запасной метод не сработал:', e);
+                showNotification('Не удалось переключить период');
+            }
         }
         
         function getPeriodName(period) {
@@ -550,25 +561,14 @@
             }[period] || period;
         }
         
-        // Установка периода
-        function setPeriod(period) {
-            currentSettings.period = period;
-            
-            // Обновляем активную кнопку
-            document.querySelectorAll('.date-controls button').forEach(btn => 
-                btn.classList.remove('active'));
-            document.getElementById(`btn${period.charAt(0).toUpperCase() + period.slice(1)}`)
-                .classList.add('active');
-            
-            saveSettings();
-            reloadWidget();
-        }
-        
         // Инициализация
         function init() {
             // Загружаем сохранённые настройки
             loadSettings();
             applySettingsToForm();
+            
+            // Загружаем виджет с начальными настройками
+            iframe.src = WIDGET_URL;
             
             // Настраиваем обработчики событий
             document.getElementById('btnYesterday').addEventListener('click', () => setPeriod('yesterday'));
@@ -579,44 +579,27 @@
             document.getElementById('applySettings').addEventListener('click', () => {
                 updateSettingsFromForm();
                 saveSettings();
-                reloadWidget();
                 showNotification('Фильтры применены');
+                // Обновляем iframe с новыми настройками
+                const newUrl = WIDGET_URL.replace(
+                    /importance=[^&]*/,
+                    `importance=${currentSettings.importance}`
+                ).replace(
+                    /timeZone=[^&]*/,
+                    `timeZone=${currentSettings.timeZone}`
+                );
+                iframe.src = newUrl;
             });
             
             document.getElementById('resetSettings').addEventListener('click', () => {
                 currentSettings = {...DEFAULT_SETTINGS};
                 applySettingsToForm();
                 saveSettings();
-                reloadWidget();
+                iframe.src = WIDGET_URL;
                 showNotification('Настройки сброшены');
             });
             
-            // Автосохранение при изменении настроек
-            const inputs = ['importanceSelect', 'categorySelect', 'timezoneSelect'].map(id => 
-                document.getElementById(id)
-            );
-            
-            inputs.forEach(input => {
-                if (input) {
-                    input.addEventListener('change', () => {
-                        updateSettingsFromForm();
-                        if (currentSettings.saveSettings) {
-                            saveSettings();
-                        }
-                    });
-                }
-            });
-            
-            document.getElementById('saveSettings').addEventListener('change', () => {
-                updateSettingsFromForm();
-                document.getElementById('settingsStatus').textContent = 
-                    currentSettings.saveSettings ? 'Настройки сохранены' : 'Автосохранение отключено';
-                if (currentSettings.saveSettings) {
-                    saveSettings();
-                }
-            });
-            
-            // Обработчик сообщений от виджета (если он их отправляет)
+            // Обработчик сообщений ОТ виджета (для отладки)
             window.addEventListener('message', function(event) {
                 if (event.origin !== 'https://sslecal2.investing.com') return;
                 console.log('Получено сообщение от виджета:', event.data);
