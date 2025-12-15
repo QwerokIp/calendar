@@ -47,30 +47,6 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        .info {
-            background: var(--info-bg);
-            padding: 16px;
-            border-radius: 6px;
-            margin-bottom: 24px;
-            border: 1px solid var(--info-border);
-            border-left: 4px solid var(--info-border);
-        }
-
-        .info p {
-            margin: 8px 0;
-            color: var(--text-color);
-        }
-
-        .info strong {
-            color: var(--text-color);
-            font-weight: 600;
-        }
-
-        #lastUpdate {
-            color: var(--accent-color);
-            font-weight: 500;
-        }
-
         iframe {
             border: 1px solid var(--border-color);
             border-radius: 6px;
@@ -79,14 +55,37 @@
 
         .controls {
             display: flex;
-            gap: 10px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            align-items: center;
-            padding: 12px;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .controls-section {
+            padding: 16px;
             background: var(--info-bg);
             border-radius: 6px;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--info-border);
+        }
+
+        .controls-section h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: var(--text-color);
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .filter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .date-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .controls label {
@@ -110,19 +109,41 @@
             background: var(--accent-color);
             color: white;
             border: none;
-            padding: 6px 12px;
+            padding: 8px 16px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
             font-weight: 500;
+            transition: background 0.2s;
         }
 
         .controls button:hover {
-            opacity: 0.9;
+            background: #2a7fff;
         }
 
         .controls button.secondary {
             background: var(--border-color);
+        }
+
+        .controls button.secondary:hover {
+            background: #404850;
+        }
+
+        .controls button.active {
+            background: #0d5fd6;
+            border: 1px solid var(--accent-color);
+        }
+
+        .date-controls button {
+            padding: 6px 12px;
+        }
+
+        .settings-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 12px;
         }
 
         .settings-status {
@@ -193,9 +214,14 @@
                 height: 700px;
             }
 
-            .controls {
+            .filter-controls,
+            .date-controls {
                 flex-direction: column;
                 align-items: stretch;
+            }
+
+            .date-controls button {
+                width: 100%;
             }
 
             .settings-status {
@@ -226,47 +252,64 @@
         <h1>📅 Календарь экономических событий</h1>
 
         <div class="controls">
-            <label>
-                <input type="checkbox" id="saveSettings" checked>
-                Сохранять настройки
-            </label>
-            
-            <label>
-                Важность:
-                <select id="importanceSelect">
-                    <option value="1,2,3">Все (1-3 звёзды)</option>
-                    <option value="3">Только высокие (3 звезды)</option>
-                    <option value="2,3">Средние и высокие (2-3 звезды)</option>
-                    <option value="1">Низкие (1 звезда)</option>
-                </select>
-            </label>
-            
-            <label>
-                Категории:
-                <select id="categorySelect">
-                    <option value="_employment,_economicActivity,_inflation,_credit,_centralBanks,_confidenceIndex,_balance,_Bonds">Все категории</option>
-                    <option value="_employment,_economicActivity">Занятость и активность</option>
-                    <option value="_inflation,_credit">Инфляция и кредиты</option>
-                    <option value="_centralBanks">Центральные банки</option>
-                    <option value="_confidenceIndex,_balance">Доверие и баланс</option>
-                </select>
-            </label>
-            
-            <label>
-                Часовой пояс:
-                <select id="timezoneSelect">
-                    <option value="18">Москва (+3)</option>
-                    <option value="8">Лондон (GMT)</option>
-                    <option value="19">Нью-Йорк (-5)</option>
-                    <option value="24">Токио (+9)</option>
-                </select>
-            </label>
-            
-            <button id="applySettings">Применить</button>
-            <button id="resetSettings" class="secondary">Сбросить</button>
-            
-            <div class="settings-status" id="settingsStatus">
-                Настройки сохранены
+            <div class="controls-section">
+                <h3>Фильтры и настройки</h3>
+                <div class="filter-controls">
+                    <label>
+                        Важность:
+                        <select id="importanceSelect">
+                            <option value="1,2,3">Все (1-3 звёзды)</option>
+                            <option value="3">Только высокие (3 звезды)</option>
+                            <option value="2,3">Средние и высокие (2-3 звезды)</option>
+                            <option value="1">Низкие (1 звезда)</option>
+                        </select>
+                    </label>
+                    
+                    <label>
+                        Категории:
+                        <select id="categorySelect">
+                            <option value="_employment,_economicActivity,_inflation,_credit,_centralBanks,_confidenceIndex,_balance,_Bonds">Все категории</option>
+                            <option value="_employment,_economicActivity">Занятость и активность</option>
+                            <option value="_inflation,_credit">Инфляция и кредиты</option>
+                            <option value="_centralBanks">Центральные банки</option>
+                            <option value="_confidenceIndex,_balance">Доверие и баланс</option>
+                        </select>
+                    </label>
+                    
+                    <label>
+                        Часовой пояс:
+                        <select id="timezoneSelect">
+                            <option value="18">Москва (+3)</option>
+                            <option value="8">Лондон (GMT)</option>
+                            <option value="19">Нью-Йорк (-5)</option>
+                            <option value="24">Токио (+9)</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="settings-row">
+                    <label>
+                        <input type="checkbox" id="saveSettings" checked>
+                        Сохранять настройки
+                    </label>
+                    
+                    <button id="applySettings">Применить</button>
+                    <button id="resetSettings" class="secondary">Сбросить всё</button>
+                    
+                    <div class="settings-status" id="settingsStatus">
+                        Настройки сохранены
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-section">
+                <h3>Период отображения</h3>
+                <div class="date-controls">
+                    <button id="btnYesterday" class="secondary">Вчера</button>
+                    <button id="btnToday" class="active">Сегодня</button>
+                    <button id="btnTomorrow" class="secondary">Завтра</button>
+                    <button id="btnThisWeek" class="secondary">Эта неделя</button>
+                </div>
             </div>
         </div>
 
@@ -285,15 +328,15 @@
     <script>
         // Глобальные переменные для управления интервалами
         let updateInterval = null;
-        let timestampInterval = null;
         let lastVisibilityChange = Date.now();
-        const VISIBILITY_THRESHOLD = 5000; // 5 секунд для предотвращения частых переключений
-        const WIDGET_UPDATE_INTERVAL = 300000; // 5 минут
+        const VISIBILITY_THRESHOLD = 5000;
+        const WIDGET_UPDATE_INTERVAL = 300000;
         
-        // Базовые параметры URL
+        // Базовые параметры URL - УБИРАЕМ features, которые показывают кнопки
         const WIDGET_BASE_PARAMS = {
             columns: 'exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous',
-            features: 'datepicker,timezone,timeselector,filters',
+            // Убираем: datepicker,timezone,timeselector,filters - чтобы скрыть кнопки интерфейса
+            features: 'removeAll', // Специальное значение для скрытия всего
             countries: '25,4,17,39,72,26,10,6,37,43,56,36,5,61,22,12,35',
             calType: 'day',
             lang: '7'
@@ -304,6 +347,7 @@
             importance: '1,2,3',
             category: '_employment,_economicActivity,_inflation,_credit,_centralBanks,_confidenceIndex,_balance,_Bonds',
             timeZone: '18',
+            period: 'today',
             saveSettings: true
         };
 
@@ -311,7 +355,7 @@
         let currentSettings = {...DEFAULT_SETTINGS};
 
         // Показываем уведомление
-        function showNotification(message, duration = 3000) {
+        function showNotification(message, duration = 2000) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
             notification.style.display = 'block';
@@ -328,7 +372,6 @@
             try {
                 localStorage.setItem('economicCalendarSettings', JSON.stringify(currentSettings));
                 document.getElementById('settingsStatus').textContent = 'Настройки сохранены';
-                showNotification('Настройки сохранены');
                 console.log('Настройки сохранены:', currentSettings);
             } catch (error) {
                 console.error('Ошибка при сохранении настроек:', error);
@@ -358,8 +401,23 @@
             document.getElementById('categorySelect').value = currentSettings.category;
             document.getElementById('timezoneSelect').value = currentSettings.timeZone;
             
+            // Устанавливаем активную кнопку периода
+            document.querySelectorAll('.date-controls button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const periodBtn = document.getElementById(`btn${capitalizeFirst(currentSettings.period)}`);
+            if (periodBtn) {
+                periodBtn.classList.add('active');
+            }
+            
             document.getElementById('settingsStatus').textContent = 
                 currentSettings.saveSettings ? 'Настройки сохранены' : 'Автосохранение отключено';
+        }
+
+        // Вспомогательная функция для капитализации первой буквы
+        function capitalizeFirst(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
         }
 
         // Обновляем настройки из формы
@@ -368,21 +426,55 @@
                 importance: document.getElementById('importanceSelect').value,
                 category: document.getElementById('categorySelect').value,
                 timeZone: document.getElementById('timezoneSelect').value,
+                period: currentSettings.period,
                 saveSettings: document.getElementById('saveSettings').checked
             };
         }
 
         // Собираем URL виджета с текущими настройками
         function buildWidgetUrl() {
-            const params = {
-                ...WIDGET_BASE_PARAMS,
-                importance: currentSettings.importance,
-                category: currentSettings.category,
-                timeZone: currentSettings.timeZone,
-                _t: new Date().getTime() // Для предотвращения кэширования
-            };
+            // Создаём копию базовых параметров
+            const params = {...WIDGET_BASE_PARAMS};
             
+            // Добавляем фильтры
+            params.importance = currentSettings.importance;
+            params.category = currentSettings.category;
+            params.timeZone = currentSettings.timeZone;
+            
+            // Устанавливаем тип календаря (день или неделя)
+            params.calType = currentSettings.period === 'thisWeek' ? 'week' : 'day';
+            
+            // Для полного скрытия интерфейса используем специальные параметры
+            // Investing.com API позволяет скрывать элементы через features
+            // Мы используем только нужные колонки и скрываем весь интерфейс
+            
+            // Если это не сегодняшний день, устанавливаем конкретную дату
+            if (currentSettings.period !== 'today' && currentSettings.period !== 'thisWeek') {
+                const date = new Date();
+                
+                switch(currentSettings.period) {
+                    case 'yesterday':
+                        date.setDate(date.getDate() - 1);
+                        break;
+                    case 'tomorrow':
+                        date.setDate(date.getDate() + 1);
+                        break;
+                }
+                
+                // Форматируем дату как YYYY-MM-DD
+                const formattedDate = date.getFullYear() + '-' + 
+                    String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                    String(date.getDate()).padStart(2, '0');
+                
+                params.date = formattedDate;
+            }
+            
+            // Добавляем timestamp для предотвращения кэширования
+            params._t = new Date().getTime();
+            
+            // Собираем query string
             const queryString = Object.entries(params)
+                .filter(([key, value]) => value !== 'removeAll') // Убираем специальные значения
                 .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
                 .join('&');
             
@@ -408,9 +500,41 @@
             triggerUpdateAnimation();
             
             setTimeout(() => {
-                iframe.src = buildWidgetUrl();
-                console.log('Виджет обновлен в ' + new Date().toLocaleString());
+                const newUrl = buildWidgetUrl();
+                console.log('Загружаем виджет с URL:', newUrl);
+                iframe.src = newUrl;
+                console.log('Виджет обновлен: ' + currentSettings.period);
             }, 500);
+        }
+
+        // Устанавливаем период
+        function setPeriod(period) {
+            currentSettings.period = period;
+            
+            // Обновляем активные кнопки
+            document.querySelectorAll('.date-controls button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const activeBtn = document.getElementById(`btn${capitalizeFirst(period)}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+            
+            saveSettings();
+            updateWidget();
+            showNotification(`Показан период: ${getPeriodName(period)}`);
+        }
+
+        // Получаем название периода
+        function getPeriodName(period) {
+            const names = {
+                yesterday: 'Вчера',
+                today: 'Сегодня',
+                tomorrow: 'Завтра',
+                thisWeek: 'Эта неделя'
+            };
+            return names[period] || period;
         }
 
         // Проверка видимости виджета в области просмотра
@@ -496,27 +620,32 @@
             applySettingsToForm();
             
             // Загружаем виджет с текущими настройками
-            document.getElementById('investingWidget').src = buildWidgetUrl();
+            setTimeout(() => {
+                document.getElementById('investingWidget').src = buildWidgetUrl();
+            }, 100);
             
             // Запускаем обновления, если страница видима
             if (isPageVisible()) {
                 startIntervals();
             }
             
-            // Обновляем виджет при загрузке
-            setTimeout(updateWidget, 2000);
-            
             // Настраиваем обработчики событий
             document.addEventListener('visibilitychange', handleVisibilityChange);
             window.addEventListener('scroll', handleScroll);
             window.addEventListener('resize', handleScroll);
+            
+            // Обработчики для кнопок периода
+            document.getElementById('btnYesterday').addEventListener('click', () => setPeriod('yesterday'));
+            document.getElementById('btnToday').addEventListener('click', () => setPeriod('today'));
+            document.getElementById('btnTomorrow').addEventListener('click', () => setPeriod('tomorrow'));
+            document.getElementById('btnThisWeek').addEventListener('click', () => setPeriod('thisWeek'));
             
             // Обработчики для элементов управления
             document.getElementById('applySettings').addEventListener('click', () => {
                 updateSettingsFromForm();
                 saveSettings();
                 updateWidget();
-                showNotification('Настройки применены');
+                showNotification('Фильтры применены');
             });
             
             document.getElementById('resetSettings').addEventListener('click', () => {
@@ -524,7 +653,7 @@
                 applySettingsToForm();
                 saveSettings();
                 updateWidget();
-                showNotification('Настройки сброшены');
+                showNotification('Все настройки сброшены');
             });
             
             // Автосохранение при изменении настроек
@@ -550,7 +679,7 @@
             // Очистка при закрытии страницы
             window.addEventListener('beforeunload', () => {
                 stopIntervals();
-                saveSettings(); // Последнее сохранение
+                saveSettings();
                 document.removeEventListener('visibilitychange', handleVisibilityChange);
                 window.removeEventListener('scroll', handleScroll);
                 window.removeEventListener('resize', handleScroll);
