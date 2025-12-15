@@ -51,6 +51,12 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             background-color: var(--container-bg);
+            width: 100%;
+        }
+
+        .widget-container {
+            position: relative;
+            margin-bottom: 24px;
         }
 
         .controls {
@@ -76,9 +82,9 @@
         }
 
         .filter-controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
             margin-bottom: 12px;
         }
 
@@ -86,23 +92,26 @@
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
+            margin-top: 8px;
         }
 
         .controls label {
             display: flex;
-            align-items: center;
-            gap: 5px;
+            flex-direction: column;
+            gap: 4px;
             cursor: pointer;
             font-size: 14px;
+            min-width: 200px;
         }
 
         .controls select, .controls input {
             background: var(--bg-color);
             border: 1px solid var(--border-color);
             color: var(--text-color);
-            padding: 6px 10px;
+            padding: 8px 12px;
             border-radius: 4px;
             font-size: 14px;
+            width: 100%;
         }
 
         .controls button {
@@ -135,7 +144,8 @@
         }
 
         .date-controls button {
-            padding: 6px 12px;
+            padding: 8px 16px;
+            min-width: 100px;
         }
 
         .settings-row {
@@ -143,13 +153,26 @@
             align-items: center;
             gap: 16px;
             flex-wrap: wrap;
-            margin-top: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
         }
 
         .settings-status {
             font-size: 12px;
             color: var(--text-color-muted);
             margin-left: auto;
+        }
+
+        .save-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .save-toggle input[type="checkbox"] {
+            width: auto;
+            margin: 0;
         }
 
         a {
@@ -166,12 +189,14 @@
             padding-top: 16px;
             border-top: 1px solid var(--border-color);
             color: var(--text-color-muted);
-            font-size: 12px;
+            font-size: 11px;
+            text-align: center;
+            font-family: Arial, Helvetica, sans-serif;
         }
 
         .poweredBy a {
-            color: var(--accent-color);
-            font-weight: 600;
+            color: #06529D;
+            font-weight: bold;
         }
 
         @keyframes pulse {
@@ -210,23 +235,32 @@
             }
             
             iframe {
-                width: 100%;
-                height: 700px;
+                height: 467px;
             }
 
-            .filter-controls,
+            .filter-controls {
+                grid-template-columns: 1fr;
+            }
+
             .date-controls {
-                flex-direction: column;
-                align-items: stretch;
+                justify-content: center;
             }
 
             .date-controls button {
-                width: 100%;
+                flex: 1;
+                min-width: 0;
+                text-align: center;
+            }
+
+            .settings-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
             }
 
             .settings-status {
                 margin-left: 0;
-                margin-top: 8px;
+                text-align: center;
             }
         }
 
@@ -235,12 +269,22 @@
                 padding: 10px;
             }
             
-            iframe {
-                height: 600px;
-            }
-            
             h1 {
                 font-size: 24px;
+            }
+            
+            .controls-section {
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .date-controls {
+                flex-direction: column;
+            }
+            
+            .date-controls button {
+                width: 100%;
             }
         }
     </style>
@@ -256,44 +300,59 @@
                 <h3>Фильтры и настройки</h3>
                 <div class="filter-controls">
                     <label>
-                        Важность:
+                        <span>Важность событий:</span>
                         <select id="importanceSelect">
-                            <option value="1,2,3">Все (1-3 звёзды)</option>
-                            <option value="3">Только высокие (3 звезды)</option>
-                            <option value="2,3">Средние и высокие (2-3 звезды)</option>
-                            <option value="1">Низкие (1 звезда)</option>
+                            <option value="1,2,3">Все события (1-3 звёзды)</option>
+                            <option value="3">Высокая важность (3 звезды)</option>
+                            <option value="2">Средняя важность (2 звезды)</option>
+                            <option value="1">Низкая важность (1 звезда)</option>
                         </select>
                     </label>
                     
                     <label>
-                        Категории:
+                        <span>Категории событий:</span>
                         <select id="categorySelect">
                             <option value="_employment,_economicActivity,_inflation,_credit,_centralBanks,_confidenceIndex,_balance,_Bonds">Все категории</option>
-                            <option value="_employment,_economicActivity">Занятость и активность</option>
-                            <option value="_inflation,_credit">Инфляция и кредиты</option>
+                            <option value="_employment">Занятость</option>
+                            <option value="_economicActivity">Экономическая активность</option>
+                            <option value="_inflation">Инфляция</option>
+                            <option value="_credit">Кредиты и денежная масса</option>
                             <option value="_centralBanks">Центральные банки</option>
-                            <option value="_confidenceIndex,_balance">Доверие и баланс</option>
+                            <option value="_confidenceIndex">Индексы доверия</option>
+                            <option value="_balance">Торговый баланс</option>
+                            <option value="_Bonds">Облигации</option>
                         </select>
                     </label>
                     
                     <label>
-                        Часовой пояс:
+                        <span>Часовой пояс:</span>
                         <select id="timezoneSelect">
-                            <option value="18">Москва (+3)</option>
+                            <option value="18">Москва (+3 GMT)</option>
                             <option value="8">Лондон (GMT)</option>
-                            <option value="19">Нью-Йорк (-5)</option>
-                            <option value="24">Токио (+9)</option>
+                            <option value="19">Нью-Йорк (-5 GMT)</option>
+                            <option value="24">Токио (+9 GMT)</option>
+                            <option value="14">Франкфурт (+1 GMT)</option>
+                            <option value="12">Сидней (+10 GMT)</option>
                         </select>
                     </label>
                 </div>
 
+                <div class="date-controls">
+                    <button id="btnYesterday" class="secondary">Вчера</button>
+                    <button id="btnToday" class="active">Сегодня</button>
+                    <button id="btnTomorrow" class="secondary">Завтра</button>
+                    <button id="btnThisWeek" class="secondary">Эта неделя</button>
+                </div>
+
                 <div class="settings-row">
-                    <label>
+                    <div class="save-toggle">
                         <input type="checkbox" id="saveSettings" checked>
-                        Сохранять настройки
-                    </label>
+                        <label for="saveSettings" style="flex-direction: row; align-items: center; gap: 6px;">
+                            Сохранять настройки
+                        </label>
+                    </div>
                     
-                    <button id="applySettings">Применить</button>
+                    <button id="applySettings">Применить фильтры</button>
                     <button id="resetSettings" class="secondary">Сбросить всё</button>
                     
                     <div class="settings-status" id="settingsStatus">
@@ -301,46 +360,30 @@
                     </div>
                 </div>
             </div>
-
-            <div class="controls-section">
-                <h3>Период отображения</h3>
-                <div class="date-controls">
-                    <button id="btnYesterday" class="secondary">Вчера</button>
-                    <button id="btnToday" class="active">Сегодня</button>
-                    <button id="btnTomorrow" class="secondary">Завтра</button>
-                    <button id="btnThisWeek" class="secondary">Эта неделя</button>
-                </div>
-            </div>
         </div>
 
-        <!-- Основной виджет Investing.com -->
-        <iframe 
-            width="880" 
-            height="660" 
-            frameborder="0" 
-            allowtransparency="true" 
-            marginwidth="0" 
-            marginheight="0"
-            id="investingWidget">
-        </iframe>
+        <div class="widget-container">
+            <iframe 
+                height="467" 
+                frameborder="0" 
+                allowtransparency="true" 
+                marginwidth="0" 
+                marginheight="0"
+                id="investingWidget">
+            </iframe>
+        </div>
+        
     </div>
 
     <script>
-        // Глобальные переменные для управления интервалами
+        // Глобальные переменные
         let updateInterval = null;
         let lastVisibilityChange = Date.now();
         const VISIBILITY_THRESHOLD = 5000;
-        const WIDGET_UPDATE_INTERVAL = 300000;
+        const WIDGET_UPDATE_INTERVAL = 300000; // 5 минут
         
-        // Базовые параметры URL - УБИРАЕМ features, которые показывают кнопки
-        const WIDGET_BASE_PARAMS = {
-            columns: 'exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous',
-            // Убираем: datepicker,timezone,timeselector,filters - чтобы скрыть кнопки интерфейса
-            features: 'removeAll', // Специальное значение для скрытия всего
-            countries: '25,4,17,39,72,26,10,6,37,43,56,36,5,61,22,12,35',
-            calType: 'day',
-            lang: '7'
-        };
+        // Базовый URL виджета
+        const WIDGET_BASE_URL = "https://sslecal2.investing.com?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&countries=25,4,17,39,72,26,10,6,37,43,56,36,5,61,22,12,35&lang=7";
 
         // Настройки по умолчанию
         const DEFAULT_SETTINGS = {
@@ -348,6 +391,7 @@
             category: '_employment,_economicActivity,_inflation,_credit,_centralBanks,_confidenceIndex,_balance,_Bonds',
             timeZone: '18',
             period: 'today',
+            calType: 'day',
             saveSettings: true
         };
 
@@ -375,6 +419,7 @@
                 console.log('Настройки сохранены:', currentSettings);
             } catch (error) {
                 console.error('Ошибка при сохранении настроек:', error);
+                document.getElementById('settingsStatus').textContent = 'Ошибка сохранения';
             }
         }
 
@@ -427,28 +472,37 @@
                 category: document.getElementById('categorySelect').value,
                 timeZone: document.getElementById('timezoneSelect').value,
                 period: currentSettings.period,
+                calType: currentSettings.calType,
                 saveSettings: document.getElementById('saveSettings').checked
             };
         }
 
         // Собираем URL виджета с текущими настройками
         function buildWidgetUrl() {
-            // Создаём копию базовых параметров
-            const params = {...WIDGET_BASE_PARAMS};
+            const params = new URLSearchParams();
             
-            // Добавляем фильтры
-            params.importance = currentSettings.importance;
-            params.category = currentSettings.category;
-            params.timeZone = currentSettings.timeZone;
+            // Базовые параметры
+            params.append('columns', 'exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous');
+            params.append('countries', '25,4,17,39,72,26,10,6,37,43,56,36,5,61,22,12,35');
+            params.append('lang', '7');
             
-            // Устанавливаем тип календаря (день или неделя)
-            params.calType = currentSettings.period === 'thisWeek' ? 'week' : 'day';
+            // Добавляем категорию, если выбрана не "Все"
+            if (currentSettings.category && currentSettings.category !== '_employment,_economicActivity,_inflation,_credit,_centralBanks,_confidenceIndex,_balance,_Bonds') {
+                params.append('category', currentSettings.category);
+            }
             
-            // Для полного скрытия интерфейса используем специальные параметры
-            // Investing.com API позволяет скрывать элементы через features
-            // Мы используем только нужные колонки и скрываем весь интерфейс
+            // Добавляем важность, если выбрана не "Все"
+            if (currentSettings.importance && currentSettings.importance !== '1,2,3') {
+                params.append('importance', currentSettings.importance);
+            }
             
-            // Если это не сегодняшний день, устанавливаем конкретную дату
+            // Часовой пояс
+            params.append('timeZone', currentSettings.timeZone);
+            
+            // Тип календаря (день/неделя)
+            params.append('calType', currentSettings.calType);
+            
+            // Если нужно показать конкретный день, добавляем дату
             if (currentSettings.period !== 'today' && currentSettings.period !== 'thisWeek') {
                 const date = new Date();
                 
@@ -461,24 +515,17 @@
                         break;
                 }
                 
-                // Форматируем дату как YYYY-MM-DD
                 const formattedDate = date.getFullYear() + '-' + 
                     String(date.getMonth() + 1).padStart(2, '0') + '-' + 
                     String(date.getDate()).padStart(2, '0');
                 
-                params.date = formattedDate;
+                params.append('date', formattedDate);
             }
             
             // Добавляем timestamp для предотвращения кэширования
-            params._t = new Date().getTime();
+            params.append('_t', new Date().getTime());
             
-            // Собираем query string
-            const queryString = Object.entries(params)
-                .filter(([key, value]) => value !== 'removeAll') // Убираем специальные значения
-                .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-                .join('&');
-            
-            return `https://sslecal2.investing.com?${queryString}`;
+            return `https://sslecal2.investing.com?${params.toString()}`;
         }
 
         // Обновляем виджет с текущими настройками
@@ -489,10 +536,10 @@
                 return;
             }
 
-            // Защита от слишком частых обновлений при переключении вкладок
+            // Защита от слишком частых обновлений
             const now = Date.now();
             if (now - lastVisibilityChange < VISIBILITY_THRESHOLD) {
-                console.log('Обновление отложено: недавно было переключение вкладки');
+                console.log('Обновление отложено');
                 return;
             }
 
@@ -501,15 +548,16 @@
             
             setTimeout(() => {
                 const newUrl = buildWidgetUrl();
-                console.log('Загружаем виджет с URL:', newUrl);
+                console.log('Загружаем виджет:', newUrl);
                 iframe.src = newUrl;
-                console.log('Виджет обновлен: ' + currentSettings.period);
-            }, 500);
+                showNotification('Виджет обновлён');
+            }, 300);
         }
 
         // Устанавливаем период
         function setPeriod(period) {
             currentSettings.period = period;
+            currentSettings.calType = period === 'thisWeek' ? 'week' : 'day';
             
             // Обновляем активные кнопки
             document.querySelectorAll('.date-controls button').forEach(btn => {
@@ -523,7 +571,7 @@
             
             saveSettings();
             updateWidget();
-            showNotification(`Показан период: ${getPeriodName(period)}`);
+            showNotification(`Период: ${getPeriodName(period)}`);
         }
 
         // Получаем название периода
@@ -537,9 +585,11 @@
             return names[period] || period;
         }
 
-        // Проверка видимости виджета в области просмотра
+        // Проверка видимости виджета
         function isWidgetVisible() {
             const iframe = document.getElementById('investingWidget');
+            if (!iframe) return false;
+            
             const rect = iframe.getBoundingClientRect();
             const windowHeight = window.innerHeight || document.documentElement.clientHeight;
             const windowWidth = window.innerWidth || document.documentElement.clientWidth;
@@ -548,13 +598,11 @@
                 rect.top >= 0 &&
                 rect.left >= 0 &&
                 rect.bottom <= windowHeight &&
-                rect.right <= windowWidth &&
-                rect.top < windowHeight &&
-                rect.left < windowWidth
+                rect.right <= windowWidth
             );
         }
 
-        // Проверка видимости страницы (Page Visibility API)
+        // Проверка видимости страницы
         function isPageVisible() {
             return !document.hidden;
         }
@@ -571,20 +619,17 @@
         // Запуск интервалов обновления
         function startIntervals() {
             stopIntervals();
-            
             updateInterval = setInterval(updateWidget, WIDGET_UPDATE_INTERVAL);
-            
-            console.log('Интервалы обновления запущены');
+            console.log('Автообновление включено');
         }
 
-        // Остановка интервалов для экономии ресурсов
+        // Остановка интервалов
         function stopIntervals() {
             if (updateInterval) {
                 clearInterval(updateInterval);
                 updateInterval = null;
             }
-            
-            console.log('Интервалы обновления остановлены');
+            console.log('Автообновление выключено');
         }
 
         // Обработчик изменения видимости страницы
@@ -599,7 +644,7 @@
             }
         }
 
-        // Обработчик скролла для проверки видимости виджета
+        // Обработчик скролла
         let scrollTimeout;
         function handleScroll() {
             clearTimeout(scrollTimeout);
@@ -620,11 +665,9 @@
             applySettingsToForm();
             
             // Загружаем виджет с текущими настройками
-            setTimeout(() => {
-                document.getElementById('investingWidget').src = buildWidgetUrl();
-            }, 100);
+            document.getElementById('investingWidget').src = buildWidgetUrl();
             
-            // Запускаем обновления, если страница видима
+            // Запускаем автообновление
             if (isPageVisible()) {
                 startIntervals();
             }
@@ -653,18 +696,23 @@
                 applySettingsToForm();
                 saveSettings();
                 updateWidget();
-                showNotification('Все настройки сброшены');
+                showNotification('Настройки сброшены');
             });
             
             // Автосохранение при изменении настроек
-            const inputs = document.querySelectorAll('#importanceSelect, #categorySelect, #timezoneSelect');
+            const inputs = ['importanceSelect', 'categorySelect', 'timezoneSelect'].map(id => 
+                document.getElementById(id)
+            );
+            
             inputs.forEach(input => {
-                input.addEventListener('change', () => {
-                    updateSettingsFromForm();
-                    if (currentSettings.saveSettings) {
-                        saveSettings();
-                    }
-                });
+                if (input) {
+                    input.addEventListener('change', () => {
+                        updateSettingsFromForm();
+                        if (currentSettings.saveSettings) {
+                            saveSettings();
+                        }
+                    });
+                }
             });
             
             document.getElementById('saveSettings').addEventListener('change', () => {
@@ -686,7 +734,7 @@
             });
         }
 
-        // Запускаем инициализацию после загрузки DOM
+        // Запускаем инициализацию
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
