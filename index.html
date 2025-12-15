@@ -312,10 +312,11 @@
                     <label>
                         <span>Важность:</span>
                         <select id="importanceSelect">
-                            <option value="1,2,3">Все события</option>
-                            <option value="3">Высокая</option>
-                            <option value="2">Средняя</option>
-                            <option value="1">Низкая</option>
+                            <option value="1,2,3">Все события (1-3 звёзды)</option>
+                            <option value="3">Только высокие (3 звезды)</option>
+                            <option value="2,3">Средние и высокие (2-3 звезды)</option>
+                            <option value="2">Только средние (2 звезды)</option>
+                            <option value="1">Только низкие (1 звезда)</option>
                         </select>
                     </label>
                     
@@ -345,7 +346,7 @@
                     <button id="btnYesterday" class="secondary">Вчера</button>
                     <button id="btnToday" class="active">Сегодня</button>
                     <button id="btnTomorrow" class="secondary">Завтра</button>
-                    <button id="btnThisWeek" class="secondary">Эта неделя</button>
+                    <button id="btnThisWeek" class="secondary">Вся неделя</button>
                 </div>
 
                 <div class="settings-row">
@@ -372,7 +373,7 @@
                 frameborder="0" 
                 allowtransparency="true" 
                 marginwidth="0" 
-                marginheight="0"
+            marginheight="0"
                 id="investingWidget">
             </iframe>
         </div>
@@ -465,15 +466,28 @@
             const buttons = document.querySelectorAll('.date-controls button');
             buttons.forEach(btn => btn.classList.remove('active'));
             
-            const periodBtn = document.getElementById(`btn${capitalizeFirst(currentSettings.period)}`);
+            let periodBtnId;
+            switch(currentSettings.period) {
+                case 'yesterday':
+                    periodBtnId = 'btnYesterday';
+                    break;
+                case 'today':
+                    periodBtnId = 'btnToday';
+                    break;
+                case 'tomorrow':
+                    periodBtnId = 'btnTomorrow';
+                    break;
+                case 'thisWeek':
+                    periodBtnId = 'btnThisWeek';
+                    break;
+                default:
+                    periodBtnId = 'btnToday';
+            }
+            
+            const periodBtn = document.getElementById(periodBtnId);
             if (periodBtn) {
                 periodBtn.classList.add('active');
             }
-        }
-
-        // Вспомогательная функция для капитализации первой буквы
-        function capitalizeFirst(string) {
-            return string.charAt(0).toUpperCase() + string.slice(1);
         }
 
         // Обновляем настройки из формы
@@ -538,7 +552,7 @@
                     break;
                     
                 case 'thisWeek':
-                    // Для недели не передаем конкретную дату
+                    // Для недели используем calType=week без конкретной даты
                     params.set('calType', 'week');
                     break;
             }
@@ -594,7 +608,7 @@
                 yesterday: 'Вчера',
                 today: 'Сегодня',
                 tomorrow: 'Завтра',
-                thisWeek: 'Эта неделя'
+                thisWeek: 'Вся неделя'
             };
             return names[period] || period;
         }
